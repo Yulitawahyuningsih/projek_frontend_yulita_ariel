@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { Alert } from 'react-native';
 import SplashScreen from './SRC/screen/SplashScreen'; // Impor SplashScreen yang baru
 import OnboardingSlideThree from './SRC/screen/OnboardingSlideThree';
 import LoginScreen from './SRC/screen/LoginScreen';
@@ -85,12 +86,11 @@ const AppNavigator = ({ cartItems, wishlist, toggleWishlist, addresses, handleSa
         <Stack.Screen name="ShippingAddress">
           {props => <ShippingAddressScreen 
             {...props} 
-            onSaveAddress={handleSaveAddress} // Meneruskan fungsi handleSaveAddress
-            onConfirm={(selectedId) => {
+            onSaveAddress={handleSaveAddress}
+            onConfirm={(selectedId, selectedCartItems) => {
               console.log('Alamat dipilih:', selectedId);
-              props.navigation.navigate('SelectPaymentMethod'); // Lanjutkan ke pemilihan metode pembayaran
+              props.navigation.navigate('SelectPaymentMethod', { cartItems: selectedCartItems });
             }}
-            // onAddNew dan onEdit sekarang ditangani di dalam komponen ShippingAddressScreen
           />}
         </Stack.Screen>
         <Stack.Screen name="PaymentHistory" component={PaymentHistoryScreen} />
@@ -115,11 +115,11 @@ const AppNavigator = ({ cartItems, wishlist, toggleWishlist, addresses, handleSa
         <Stack.Screen name="SelectPaymentMethod">
           {props => <MemilihSaatCheckoutScreen
             {...props}
-            cartItems={cartItems} // Meneruskan data belanja terbaru
+            cartItems={props.route.params?.cartItems || []}
+            addressId={props.route.params?.addressId}
             onBack={() => props.navigation.goBack()} 
             onPayNow={() => {
-              console.log('Pembayaran diproses...');
-              props.navigation.navigate('OrderConfirmation'); // Lanjutkan ke konfirmasi pesanan
+              props.navigation.navigate('OrderConfirmation');
             }}
           />}
         </Stack.Screen>

@@ -7,8 +7,8 @@ import {
   KeyboardAvoidingView,
   Image,
   Platform,
-  ActivityIndicator, // Import ActivityIndicator
-  Alert, // Import Alert
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { register } from '../services/authService';
@@ -16,9 +16,10 @@ import { register } from '../services/authService';
 const RegisterScreen = ({ navigation }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirm] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // Tambah state isLoading
+  const [isLoading, setIsLoading] = useState(false);
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{
@@ -82,6 +83,20 @@ const RegisterScreen = ({ navigation }) => {
             paddingVertical: 10,
             marginBottom: 25,
           }}
+          placeholder="Nomor HP"
+          value={phone}
+          onChangeText={setPhone}
+          keyboardType="phone-pad"
+        />
+        <TextInput
+          style={{
+            color: '#43334C',
+            fontSize: 16,
+            borderBottomWidth: 1,
+            borderBottomColor: '#FFC4C4',
+            paddingVertical: 10,
+            marginBottom: 25,
+          }}
           placeholder="Buat Kata Sandi"
           value={password}
           onChangeText={setPassword}
@@ -109,14 +124,18 @@ const RegisterScreen = ({ navigation }) => {
           paddingVertical: 15,
           borderRadius: 50,
           alignItems: 'center',
-        }} onPress={async () => { // Perbaiki di sini
-          if (!name.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
+        }} onPress={async () => {
+          if (!name.trim() || !email.trim() || !phone.trim() || !password.trim() || !confirmPassword.trim()) {
             Alert.alert('Peringatan', 'Semua kolom harus diisi.');
+            return;
+          }
+          if (password !== confirmPassword) {
+            Alert.alert('Peringatan', 'Kata sandi dan konfirmasi sandi tidak cocok.');
             return;
           }
           setIsLoading(true);
           try {
-            await register(name, email, password, confirmPassword);
+            await register({ name, email, password, phone });
             Alert.alert('Registrasi Berhasil', 'Akun Anda telah berhasil dibuat. Silakan masuk menggunakan email dan kata sandi Anda.');
             navigation.navigate('Login');
           } catch (error) {
@@ -133,7 +152,6 @@ const RegisterScreen = ({ navigation }) => {
             <Text style={{ color: '#F9F8F6', fontSize: 16, fontWeight: 'bold' }}>SELESAIKAN REGISTRASI</Text>
           )}
         </TouchableOpacity>
-
 
         <Text style={{ textAlign: 'center', fontSize: 12, color: '#43334C', marginTop: 15 }}>
           Dengan mendaftar, Anda menyetujui{' '}

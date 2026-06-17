@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Text, View, ScrollView, TouchableOpacity } from 'react-native';
+import { Text, View, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { createOrder } from '../services/orderService';
 import PaymentOptionRow from './PaymentOptionRow';
 
 const paymentMethods = {
@@ -21,14 +22,15 @@ const paymentMethods = {
   ],
 };
 
-const MemilihSaatCheckoutScreen = ({ onBack, onPayNow, cartItems = [] }) => {
+const MemilihSaatCheckoutScreen = ({ onBack, onPayNow, cartItems = [], addressId }) => {
   const [selectedMethod, setSelectedMethod] = useState('bca');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Fungsi untuk menghitung total belanja secara dinamis
   const calculateSubtotal = () => {
     return cartItems.reduce((total, item) => {
-      // Pastikan harga dibersihkan dari karakter non-angka dan dikonversi ke Integer
-      const price = parseInt(String(item.price || '0').replace(/[^0-9]/g, ''), 10);
+      const product = item.product || {};
+      const price = parseFloat(product.discount_price || product.price || 0);
       const qty = parseInt(item.quantity || '0', 10);
       return total + (price * qty);
     }, 0);
@@ -37,6 +39,32 @@ const MemilihSaatCheckoutScreen = ({ onBack, onPayNow, cartItems = [] }) => {
   const subtotal = calculateSubtotal();
   const shippingFee = cartItems.length > 0 ? 15000 : 0; // Biaya pengiriman flat Rp 15.000 jika ada barang
   const totalPayment = subtotal + shippingFee;
+
+  const handlePayNow = async () => {
+    if (!addressId) {
+      Alert.alert('Peringatan', 'Alamat pengiriman belum dipilih.');
+      return;
+    }
+    if (cartItems.length === 0) {
+      Alert.alert('Peringatan', 'Keranjang belanja kosong.');
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      await createOrder({
+        address_id: addressId,
+        payment_method: selectedMethod,
+        shipping_cost: shippingFee,
+      });
+      onPayNow();
+    } catch (error) {
+      const errorMessage = error.message || 'Gagal membuat pesanan. Silakan coba lagi.';
+      Alert.alert('Pembayaran Gagal', typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: '#F9F8F6' }}>
@@ -120,12 +148,16 @@ const MemilihSaatCheckoutScreen = ({ onBack, onPayNow, cartItems = [] }) => {
           paddingVertical: 15,
           borderRadius: 8,
           alignItems: 'center',
-        }} onPress={onPayNow}>
-          <Text style={{
-            color: 'white',
-            fontSize: 16,
-            fontWeight: 'bold',
-          }}>BAYAR SEKARANG</Text>
+        }} onPress={handlePayNow} disabled={isProcessing}>
+          {isProcessing ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text style={{
+              color: 'white',
+              fontSize: 16,
+              fontWeight: 'bold',
+            }}>BAYAR SEKARANG</Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>

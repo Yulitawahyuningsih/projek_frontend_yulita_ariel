@@ -1,6 +1,6 @@
 import api, { setAuthToken } from './api';
 
-export const register = async (name, email, password, phone) => {
+export const register = async ({ name, email, password, phone }) => {
     try {
         const response = await api.post('/register', {
             name,

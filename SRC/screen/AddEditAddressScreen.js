@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Text, View, ScrollView, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
+const LABEL_OPTIONS = ['Rumah', 'Kantor', 'Lainnya'];
+
 const AddEditAddressScreen = ({ navigation, route, onSaveAddress }) => {
   const addressToEdit = route.params?.address;
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -11,7 +13,7 @@ const AddEditAddressScreen = ({ navigation, route, onSaveAddress }) => {
   const [phone, setPhone] = useState(addressToEdit?.phone || '');
   const [fullAddress, setFullAddress] = useState(addressToEdit?.full_address || addressToEdit?.fullAddress || '');
   const [postalCode, setPostalCode] = useState(addressToEdit?.postal_code || addressToEdit?.postalCode || '');
-  const [label, setLabel] = useState(addressToEdit?.label || 'Baru');
+  const [label, setLabel] = useState(addressToEdit?.label || 'Rumah');
 
   const isEditing = !!addressToEdit;
 
@@ -32,9 +34,12 @@ const AddEditAddressScreen = ({ navigation, route, onSaveAddress }) => {
       postal_code: postalCode,      // Kirim dalam format snake_case untuk DB
     };
 
-    await onSaveAddress(newAddress); // Tunggu sampai proses API selesai
-    setIsSubmitting(false);
-    navigation.goBack(); 
+    try {
+      await onSaveAddress(newAddress); // Tunggu sampai proses API selesai
+      navigation.goBack();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -64,6 +69,27 @@ const AddEditAddressScreen = ({ navigation, route, onSaveAddress }) => {
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 20 }}>
+        <Text style={{ fontSize: 13, fontWeight: 'bold', color: '#43334C', marginBottom: 8 }}>Label Alamat</Text>
+        <View style={{ flexDirection: 'row', marginBottom: 20 }}>
+          {LABEL_OPTIONS.map(option => (
+            <TouchableOpacity
+              key={option}
+              onPress={() => setLabel(option)}
+              style={{
+                paddingVertical: 8,
+                paddingHorizontal: 16,
+                borderRadius: 20,
+                borderWidth: 1,
+                borderColor: '#E83C91',
+                backgroundColor: label === option ? '#E83C91' : 'white',
+                marginRight: 10,
+              }}
+            >
+              <Text style={{ color: label === option ? 'white' : '#E83C91', fontWeight: 'bold' }}>{option}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
         <TextInput
           style={{ backgroundColor: 'white', borderWidth: 1, borderColor: '#FFC4C4', borderRadius: 8, paddingHorizontal: 15, paddingVertical: 12, fontSize: 16, marginBottom: 15, color: '#43334C' }}
           placeholder="Nama Lengkap Penerima"

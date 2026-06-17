@@ -180,7 +180,7 @@ const CartScreen = ({ navigation }) => {
               paddingVertical: 14,
               paddingHorizontal: 50,
               borderRadius: 8,
-            }} onPress={() => navigation.navigate('ShippingAddress')}>
+            }} onPress={() => navigation.navigate('ShippingAddress', { cartItems })}>
                 <Text style={{
                   color: 'white',
                   fontSize: 16,

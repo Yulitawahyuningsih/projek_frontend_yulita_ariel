@@ -5,10 +5,11 @@ import { useFocusEffect } from '@react-navigation/native';
 import AddressCard from './AddressCard';
 import { getAddresses } from '../services/addressService';
 
-const ShippingAddressScreen = ({ navigation, onConfirm: propOnConfirm, onSaveAddress: propOnSaveAddress }) => {
+const ShippingAddressScreen = ({ navigation, route, onConfirm: propOnConfirm, onSaveAddress: propOnSaveAddress }) => {
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const cartItems = route.params?.cartItems || [];
 
   // Mengambil data dari API setiap kali layar mendapatkan fokus
   useFocusEffect(
@@ -100,7 +101,7 @@ const ShippingAddressScreen = ({ navigation, onConfirm: propOnConfirm, onSaveAdd
         right: 0,
       }} onPress={() => { // Handle confirmation
         if (selectedAddressId) {
-          propOnConfirm(selectedAddressId); // Panggil prop onConfirm dari App.js
+          propOnConfirm(selectedAddressId, cartItems); // Panggil prop onConfirm dari App.js
         } else {
           Alert.alert('Peringatan', 'Pilih alamat pengiriman terlebih dahulu.');
         }
