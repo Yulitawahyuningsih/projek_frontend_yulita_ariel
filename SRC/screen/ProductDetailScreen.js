@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { Feather, FontAwesome } from '@expo/vector-icons';
 import { getProductDetail, getProductReviews } from '../services/productService';
-import { addToCart } from '../services/cartService';
+import { addToCart, getCarts } from '../services/cartService';
 import { toggleWishlist } from '../services/wishlistService';
 import ProductCard from './ProductCard';
 
@@ -102,24 +102,41 @@ const ProductDetailScreen = ({ navigation, route, cartItems = [] }) => {
     }
   };
 
-  const handleBuyNowPress = () => {
-    // Animasi saat tombol ditekan
-    Animated.sequence([
-      Animated.timing(scaleAnim, {
-        toValue: 1.05,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      // Tambahkan produk ke keranjang sebelum pindah ke alamat
-      navigation.navigate('ShippingAddress');
-    }); 
-  };
+const handleBuyNowPress = async () => {
+  const variant = productDetail?.variants?.find(
+    v => v.color === selectedColor && v.size === selectedSize
+  );
+  if (!variant) {
+    Alert.alert('Perhatian', 'Pilih warna dan ukuran terlebih dahulu');
+    return;
+  }
+
+  let latestCartItems = [];
+  try {
+    await addToCart(productId, variant.id, 1);
+    const cartResponse = await getCarts();
+    latestCartItems = cartResponse.data || [];
+  } catch (error) {
+    Alert.alert('Error', 'Gagal menyiapkan pesanan. Silakan coba lagi.');
+    return;
+  }
+
+  // Animasi saat tombol ditekan
+  Animated.sequence([
+    Animated.timing(scaleAnim, {
+      toValue: 1.05,
+      duration: 100,
+      useNativeDriver: true,
+    }),
+    Animated.timing(scaleAnim, {
+      toValue: 1,
+      duration: 100,
+      useNativeDriver: true,
+    }),
+  ]).start(() => {
+    navigation.navigate('ShippingAddress', { cartItems: latestCartItems });
+  });
+};
 
   const handleScroll = (event) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;

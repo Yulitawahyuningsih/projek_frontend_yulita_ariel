@@ -89,7 +89,7 @@ const AppNavigator = ({ cartItems, wishlist, toggleWishlist, addresses, handleSa
             onSaveAddress={handleSaveAddress}
             onConfirm={(selectedId, selectedCartItems) => {
               console.log('Alamat dipilih:', selectedId);
-              props.navigation.navigate('SelectPaymentMethod', { cartItems: selectedCartItems });
+              props.navigation.navigate('SelectPaymentMethod', { cartItems: selectedCartItems, addressId: selectedId });
             }}
           />}
         </Stack.Screen>
