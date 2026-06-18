@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { Feather, FontAwesome } from '@expo/vector-icons';
 import { getProductDetail, getProductReviews } from '../services/productService';
-import { addToCart, getCarts } from '../services/cartService';
+import { addToCart } from '../services/cartService';
 import { toggleWishlist } from '../services/wishlistService';
 import { getImageUrl } from '../services/api';
 import ProductCard from './ProductCard';
@@ -25,7 +25,7 @@ const { width: screenWidth } = Dimensions.get('window');
 const ProductDetailScreen = ({ navigation, route, cartItems = [] }) => {
   const productId = route.params?.productId ?? route.params?.product?.id;
 
-  const [productDetail, setProductDetail] = useState(route.params?.product || null); // Gunakan data dari Home sebagai data awal agar harga konsisten
+  const [productDetail, setProductDetail] = useState(route.params?.product || null);
   const [reviews, setReviews] = useState([]);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -49,7 +49,6 @@ const ProductDetailScreen = ({ navigation, route, cartItems = [] }) => {
           setSelectedColor(response.data.variants[0].color);
           setSelectedSize(response.data.variants[0].size);
         }
-      console.log('Fetched product detail:', response.data); // Log the fetched data
       }
     } catch (error) {
       Alert.alert('Error', 'Gagal memuat detail produk');
@@ -67,33 +66,26 @@ const ProductDetailScreen = ({ navigation, route, cartItems = [] }) => {
     }
   };
 
-  const [activeImageIndex, setActiveImageIndex] = useState(0); // Local state for image carousel
-  const scrollViewRef = useRef(); // Ref for image carousel
-  const scaleAnim = useRef(new Animated.Value(1)).current; // Nilai animasi untuk tombol
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const scrollViewRef = useRef();
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
-  // Logika untuk mendapatkan daftar gambar yang akan ditampilkan di carousel
   const getProductImages = () => {
-    // 1. Cek jika ada array 'images' (biasanya dari API detail)
     if (productDetail?.images && productDetail.images.length > 0) {
-      return productDetail.images.map(img => 
+      return productDetail.images.map(img =>
         typeof img === 'string' ? { uri: getImageUrl(img) } : { uri: getImageUrl(img.image_url || img.uri) }
       );
     }
-    // 2. Cek jika ada property 'image' tunggal (biasanya dipassing dari navigasi list)
     if (productDetail?.image) {
       return [typeof productDetail.image === 'string' ? { uri: getImageUrl(productDetail.image) } : productDetail.image];
     }
-    // 3. Fallback ke gambar lokal jika tidak ada data gambar
     return [require('../../assets/MiniDress.png')];
   };
 
   const productImages = getProductImages();
-  console.log('Product Images for carousel:', productImages);
 
-  // Logika untuk mendapatkan produk rekomendasi
   const recommendedProducts = [];
 
-  // Fungsi untuk toggle status wishlist
   const handleToggleWishlist = async () => {
     try {
       const response = await toggleWishlist(productId);
@@ -103,41 +95,34 @@ const ProductDetailScreen = ({ navigation, route, cartItems = [] }) => {
     }
   };
 
-const handleBuyNowPress = async () => {
-  const variant = productDetail?.variants?.find(
-    v => v.color === selectedColor && v.size === selectedSize
-  );
-  if (!variant) {
-    Alert.alert('Perhatian', 'Pilih warna dan ukuran terlebih dahulu');
-    return;
-  }
+  // ✅ DIPERBAIKI: Beli Sekarang tidak lagi menyentuh keranjang
+  const handleBuyNowPress = () => {
+    const variant = productDetail?.variants?.find(
+      v => v.color === selectedColor && v.size === selectedSize
+    );
+    if (!variant) {
+      Alert.alert('Perhatian', 'Pilih warna dan ukuran terlebih dahulu');
+      return;
+    }
 
-  let latestCartItems = [];
-  try {
-    await addToCart(productId, variant.id, 1);
-    const cartResponse = await getCarts();
-    latestCartItems = cartResponse.data || [];
-  } catch (error) {
-    Alert.alert('Error', 'Gagal menyiapkan pesanan. Silakan coba lagi.');
-    return;
-  }
+    const buyNowItem = {
+      product_id: productId,
+      product_variant_id: variant.id,
+      quantity: 1,
+      product: productDetail,
+      variant: variant,
+    };
 
-  // Animasi saat tombol ditekan
-  Animated.sequence([
-    Animated.timing(scaleAnim, {
-      toValue: 1.05,
-      duration: 100,
-      useNativeDriver: true,
-    }),
-    Animated.timing(scaleAnim, {
-      toValue: 1,
-      duration: 100,
-      useNativeDriver: true,
-    }),
-  ]).start(() => {
-    navigation.navigate('ShippingAddress', { cartItems: latestCartItems });
-  });
-};
+    Animated.sequence([
+      Animated.timing(scaleAnim, { toValue: 1.05, duration: 100, useNativeDriver: true }),
+      Animated.timing(scaleAnim, { toValue: 1, duration: 100, useNativeDriver: true }),
+    ]).start(() => {
+      navigation.navigate('ShippingAddress', {
+        cartItems: [buyNowItem],
+        isBuyNow: true,
+      });
+    });
+  };
 
   const handleScroll = (event) => {
     const scrollPosition = event.nativeEvent.contentOffset.x;
@@ -151,7 +136,6 @@ const handleBuyNowPress = async () => {
         <Feather name="arrow-left" size={24} color="#43334C" />
       </TouchableOpacity>
       <View style={styles.headerIcons}>
-        {/* Tombol Wishlist (Hati) */}
         <TouchableOpacity onPress={handleToggleWishlist} style={styles.headerIcon}>
           <FontAwesome
             name={isWishlisted ? "heart" : "heart-o"}
@@ -203,7 +187,6 @@ const handleBuyNowPress = async () => {
 
   const renderVariantSelectors = () => (
     <View style={styles.variantSection}>
-      {/* Pilihan Warna */}
       <Text style={styles.variantLabel}>Warna:</Text>
       <View style={styles.colorSelector}>
         {[...new Set(productDetail?.variants?.map(v => v.color))].map((color) => {
@@ -222,7 +205,6 @@ const handleBuyNowPress = async () => {
         })}
       </View>
 
-      {/* Pilihan Ukuran */}
       <Text style={styles.variantLabel}>Ukuran:</Text>
       <View style={styles.sizeSelector}>
         {[...new Set(productDetail?.variants?.map(v => v.size))].map((size) => (
@@ -245,7 +227,6 @@ const handleBuyNowPress = async () => {
       <View style={styles.container}>
         {renderHeader()}
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* Area Non-Scrollable (secara visual) */}
           {isLoading && <ActivityIndicator size="large" color="#E83C91" style={{ marginTop: 20 }} />}
           {renderImageCarousel()}
           <View style={styles.infoSection}>
@@ -262,7 +243,6 @@ const handleBuyNowPress = async () => {
 
           <View style={styles.divider} />
 
-          {/* Konten Gulir */}
           <View style={styles.detailsSection}>
             <Text style={styles.sectionTitle}>Detail Produk</Text>
             <Text style={styles.detailText}>
@@ -283,7 +263,6 @@ const handleBuyNowPress = async () => {
                 <Text style={styles.ratingText}>4.8/5</Text>
               </View>
             </View>
-            {/* Grafik batang bisa ditambahkan di sini */}
             <TouchableOpacity onPress={() => navigation.navigate('AllReviews')}>
               <Text style={styles.seeAllReviews}>Lihat Semua Ulasan</Text>
             </TouchableOpacity>
@@ -308,13 +287,11 @@ const handleBuyNowPress = async () => {
               showsHorizontalScrollIndicator={false}
             />
           </View>
-
         </ScrollView>
 
-        {/* Navigasi Bawah (Sticky Action Bar) */}
         <View style={styles.stickyActionBar}>
-          <TouchableOpacity 
-            style={styles.addToCartButton} 
+          <TouchableOpacity
+            style={styles.addToCartButton}
             onPress={async () => {
               try {
                 const variant = productDetail?.variants?.find(
@@ -358,7 +335,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 15,
-    paddingTop: 30, // Menambahkan padding atas untuk Android
+    paddingTop: 30,
     paddingVertical: 10,
   },
   headerIcons: {
@@ -384,7 +361,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   carouselContainer: {
-    height: screenWidth, // Membuat carousel menjadi persegi
+    height: screenWidth,
   },
   productImage: {
     width: screenWidth,
@@ -408,7 +385,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#43334C',
   },
   scrollContent: {
-    paddingBottom: 100, // Memberi ruang agar tidak tertutup action bar
+    paddingBottom: 100,
   },
   infoSection: {
     paddingHorizontal: 20,
@@ -416,7 +393,6 @@ const styles = StyleSheet.create({
   },
   productName: {
     fontSize: 24,
-    // fontFamily: 'Arial Black', // Pastikan font ini sudah di-load di project Anda
     fontWeight: '900',
     color: '#43334C',
   },
@@ -492,7 +468,6 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: 14,
-    // fontFamily: 'Bahnschrift', // Pastikan font ini sudah di-load
     lineHeight: 22,
     color: '#616161',
   },
@@ -530,7 +505,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 15,
     paddingTop: 15,
-    paddingBottom: 25, // Menambah padding bawah agar tidak terlalu mepet
+    paddingBottom: 25,
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderTopColor: '#EEEEEE',

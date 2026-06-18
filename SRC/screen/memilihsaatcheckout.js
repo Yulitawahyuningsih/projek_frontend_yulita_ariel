@@ -22,7 +22,7 @@ const paymentMethods = {
   ],
 };
 
-const MemilihSaatCheckoutScreen = ({ onBack, onPayNow, cartItems = [], addressId }) => {
+const MemilihSaatCheckoutScreen = ({ onBack, onPayNow, cartItems = [], addressId, isBuyNow = false }) => {
   const [selectedMethod, setSelectedMethod] = useState('bca');
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -42,21 +42,33 @@ const MemilihSaatCheckoutScreen = ({ onBack, onPayNow, cartItems = [], addressId
 
   const handlePayNow = async () => {
     if (!addressId) {
-      Alert.alert('Peringatan', 'Alamat pengiriman belum dipilih.');
-      return;
+    Alert.alert('Peringatan', 'Alamat pengiriman belum dipilih.');
+    return;
     }
     if (cartItems.length === 0) {
-      Alert.alert('Peringatan', 'Keranjang belanja kosong.');
+      Alert.alert('Peringatan', 'Tidak ada item untuk dipesan.');
       return;
     }
-
+  
     setIsProcessing(true);
     try {
-      await createOrder({
+      const orderPayload = {
         address_id: addressId,
         payment_method: selectedMethod,
         shipping_cost: shippingFee,
-      });
+      };
+    
+      // Jika beli langsung, kirim item ke backend tanpa pakai keranjang
+      if (isBuyNow) {
+        orderPayload.is_buy_now = true;
+        orderPayload.buy_now_items = cartItems.map(item => ({
+          product_id: item.product_id,
+          product_variant_id: item.product_variant_id,
+          quantity: item.quantity,
+        }));
+      }
+    
+      await createOrder(orderPayload);
       onPayNow();
     } catch (error) {
       const errorMessage = error.message || 'Gagal membuat pesanan. Silakan coba lagi.';

@@ -2,14 +2,17 @@ import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 
 const OrderDetailProductCard = ({ item }) => {
-  // Debugging URI
-  console.log("IMAGE URI (OrderDetailProductCard):", item.image, typeof item.image);
+  const imageSource = item.image
+    ? { uri: item.image }
+    : require('../../assets/MiniDress.png'); // fallback jika gambar null
 
   return (
     <View style={styles.cardContainer}>
-      <Image 
-        source={typeof item.image === 'string' ? { uri: item.image } : item.image} 
-        style={styles.image} />
+      <Image
+        source={imageSource}
+        style={styles.image}
+        onError={() => console.log('Gagal memuat gambar:', item.image)}
+      />
       <View style={styles.infoContainer}>
         <Text style={styles.name} numberOfLines={2}>{item.name}</Text>
         <Text style={styles.variant}>Varian: {item.variant}</Text>
@@ -25,7 +28,7 @@ const OrderDetailProductCard = ({ item }) => {
 
 const styles = StyleSheet.create({
   cardContainer: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
-  image: { width: 70, height: 90, borderRadius: 8, marginRight: 15 },
+  image: { width: 70, height: 90, borderRadius: 8, marginRight: 15, backgroundColor: '#F5F5F5' },
   infoContainer: { flex: 1, marginRight: 10 },
   name: { fontSize: 14, color: '#43334C', fontWeight: '600', marginBottom: 4 },
   variant: { fontSize: 12, color: 'grey', marginBottom: 4 },

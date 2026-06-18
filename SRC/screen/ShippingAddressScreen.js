@@ -10,6 +10,7 @@ const ShippingAddressScreen = ({ navigation, route, onConfirm: propOnConfirm, on
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const cartItems = route.params?.cartItems || [];
+  const isBuyNow = route.params?.isBuyNow || false;
 
   // Mengambil data dari API setiap kali layar mendapatkan fokus
   useFocusEffect(
@@ -101,7 +102,7 @@ const ShippingAddressScreen = ({ navigation, route, onConfirm: propOnConfirm, on
         right: 0,
       }} onPress={() => { // Handle confirmation
         if (selectedAddressId) {
-          propOnConfirm(selectedAddressId, cartItems); // Panggil prop onConfirm dari App.js
+          propOnConfirm(selectedAddressId, cartItems, isBuyNow); // Panggil prop onConfirm dari App.js
         } else {
           Alert.alert('Peringatan', 'Pilih alamat pengiriman terlebih dahulu.');
         }

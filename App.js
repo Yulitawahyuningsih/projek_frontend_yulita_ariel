@@ -87,9 +87,12 @@ const AppNavigator = ({ cartItems, wishlist, toggleWishlist, addresses, handleSa
           {props => <ShippingAddressScreen 
             {...props} 
             onSaveAddress={handleSaveAddress}
-            onConfirm={(selectedId, selectedCartItems) => {
-              console.log('Alamat dipilih:', selectedId);
-              props.navigation.navigate('SelectPaymentMethod', { cartItems: selectedCartItems, addressId: selectedId });
+            onConfirm={(selectedId, selectedCartItems, isBuyNow) => {
+            props.navigation.navigate('SelectPaymentMethod', {
+                    cartItems: selectedCartItems,
+                    addressId: selectedId,
+                    isBuyNow: isBuyNow || false,  // <-- tambahkan ini
+                  });
             }}
           />}
         </Stack.Screen>
@@ -117,6 +120,7 @@ const AppNavigator = ({ cartItems, wishlist, toggleWishlist, addresses, handleSa
             {...props}
             cartItems={props.route.params?.cartItems || []}
             addressId={props.route.params?.addressId}
+            isBuyNow={props.route.params?.isBuyNow || false}
             onBack={() => props.navigation.goBack()} 
             onPayNow={() => {
               props.navigation.navigate('OrderConfirmation');
