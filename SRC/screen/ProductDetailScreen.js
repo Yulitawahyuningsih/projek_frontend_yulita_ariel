@@ -17,6 +17,7 @@ import { Feather, FontAwesome } from '@expo/vector-icons';
 import { getProductDetail, getProductReviews } from '../services/productService';
 import { addToCart, getCarts } from '../services/cartService';
 import { toggleWishlist } from '../services/wishlistService';
+import { getImageUrl } from '../services/api';
 import ProductCard from './ProductCard';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -75,12 +76,12 @@ const ProductDetailScreen = ({ navigation, route, cartItems = [] }) => {
     // 1. Cek jika ada array 'images' (biasanya dari API detail)
     if (productDetail?.images && productDetail.images.length > 0) {
       return productDetail.images.map(img => 
-        typeof img === 'string' ? { uri: img } : { uri: img.image_url || img.uri }
+        typeof img === 'string' ? { uri: getImageUrl(img) } : { uri: getImageUrl(img.image_url || img.uri) }
       );
     }
     // 2. Cek jika ada property 'image' tunggal (biasanya dipassing dari navigasi list)
     if (productDetail?.image) {
-      return [typeof productDetail.image === 'string' ? { uri: productDetail.image } : productDetail.image];
+      return [typeof productDetail.image === 'string' ? { uri: getImageUrl(productDetail.image) } : productDetail.image];
     }
     // 3. Fallback ke gambar lokal jika tidak ada data gambar
     return [require('../../assets/MiniDress.png')];

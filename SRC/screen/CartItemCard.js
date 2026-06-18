@@ -1,6 +1,7 @@
 import React from 'react';
 import { Text, View, Image, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { getImageUrl } from '../services/api';
 
 const CartItemCard = ({ item, onUpdateQuantity, onRemove }) => {
   // Ambil data produk dari objek product yang dikirim API
@@ -10,10 +11,11 @@ const CartItemCard = ({ item, onUpdateQuantity, onRemove }) => {
   // Logika pengambilan gambar (URL string, objek uri, atau fallback)
   let imageSource = require('../../assets/MiniDress.png');
   if (product.image) {
-    imageSource = typeof product.image === 'string' ? { uri: product.image } : product.image;
+    imageSource = typeof product.image === 'string' ? { uri: getImageUrl(product.image) } : product.image;
   } else if (product.images && product.images.length > 0) {
     const firstImg = product.images[0];
-    imageSource = { uri: firstImg.image_url || firstImg.uri || firstImg };
+    const rawUrl = firstImg.image_url || firstImg.uri || firstImg;
+    imageSource = { uri: getImageUrl(rawUrl) };
   }
 
   return (

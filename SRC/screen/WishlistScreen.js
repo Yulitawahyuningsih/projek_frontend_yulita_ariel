@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
 import { Feather, FontAwesome } from '@expo/vector-icons';
+import { getImageUrl } from '../services/api';
 
 const WishlistScreen = ({ navigation, wishlist, toggleWishlist }) => {
   const renderEmptyState = () => (
@@ -16,22 +17,33 @@ const WishlistScreen = ({ navigation, wishlist, toggleWishlist }) => {
     </View>
   );
 
-  const renderWishlistItem = ({ item }) => (
-    <View style={styles.wishlistItemContainer}>
-      <Image source={item.image} style={styles.wishlistItemImage} />
-      <View style={styles.wishlistItemDetails}>
-        <Text style={styles.wishlistItemName} numberOfLines={2}>{item.name}</Text>
-        <Text style={styles.wishlistItemPrice}>
-          {item.discount_price 
-            ? `Rp ${Number(item.discount_price).toLocaleString('id-ID')}` 
-            : `Rp ${Number(item.price).toLocaleString('id-ID')}`}
-        </Text>
+  const renderWishlistItem = ({ item }) => {
+    // Dukung beberapa kemungkinan bentuk data: array 'images' dari API,
+    // properti 'image' tunggal, atau fallback ke gambar lokal.
+    let imageSource = require('../../assets/MiniDress.png');
+    if (item.images && item.images.length > 0) {
+      imageSource = { uri: getImageUrl(item.images[0].image_url) };
+    } else if (item.image) {
+      imageSource = typeof item.image === 'string' ? { uri: getImageUrl(item.image) } : item.image;
+    }
+
+    return (
+      <View style={styles.wishlistItemContainer}>
+        <Image source={imageSource} style={styles.wishlistItemImage} />
+        <View style={styles.wishlistItemDetails}>
+          <Text style={styles.wishlistItemName} numberOfLines={2}>{item.name}</Text>
+          <Text style={styles.wishlistItemPrice}>
+            {item.discount_price 
+              ? `Rp ${Number(item.discount_price).toLocaleString('id-ID')}` 
+              : `Rp ${Number(item.price).toLocaleString('id-ID')}`}
+          </Text>
+        </View>
+        <TouchableOpacity onPress={() => toggleWishlist(item)} style={styles.removeButton}>
+          <Feather name="trash-2" size={20} color="#D9534F" />
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity onPress={() => toggleWishlist(item)} style={styles.removeButton}>
-        <Feather name="trash-2" size={20} color="#D9534F" />
-      </TouchableOpacity>
-    </View>
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>

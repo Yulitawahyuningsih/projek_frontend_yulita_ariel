@@ -1,12 +1,14 @@
 import React from 'react';
 import { Text, View, Image, TouchableOpacity } from 'react-native'; 
 import { FontAwesome } from '@expo/vector-icons';
+import { getImageUrl } from '../services/api';
 
 const ProductCard = ({ item, onPress, onToggleWishlist, isWishlisted }) => {
   // console.log('ProductCard received item:', item); // Log item yang diterima oleh ProductCard
 
   // Logika untuk mendapatkan URL gambar, dengan fallback ke gambar lokal
-  const imageUrl = item.images && item.images.length > 0 ? { uri: item.images[0].image_url } : require('../../assets/MiniDress.png');
+  const resolvedUrl = item.images && item.images.length > 0 ? getImageUrl(item.images[0].image_url) : null;
+  const imageUrl = resolvedUrl ? { uri: resolvedUrl } : require('../../assets/MiniDress.png');
   // Logika untuk memformat harga
   const finalPrice = item.discount_price || item.price;
   const formattedPrice = `Rp ${Number(finalPrice).toLocaleString('id-ID')}`;

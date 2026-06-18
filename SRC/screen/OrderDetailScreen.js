@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Clipboard, Linkin
 import { Feather } from '@expo/vector-icons';
 import OrderDetailProductCard from './OrderDetailProductCard';
 import { getOrderDetail, cancelOrder } from '../services/orderService';
+import { getImageUrl } from '../services/api';
 
 const STATUS_LIST = ['Dipesan', 'Diproses', 'Dikirim', 'Selesai'];
 
@@ -193,7 +194,7 @@ const OrderDetailScreen = ({ navigation, route }) => {
             <OrderDetailProductCard key={item.id} item={{
               id: item.id,
               name: item.product_name,
-              image: item.product_image ? `http://10.88.107.115:8000/storage/${item.product_image}` : null,
+              image: item.product_image ? getImageUrl(item.product_image) : null,
               price: formatRupiah(item.price),
               quantity: item.quantity,
               variant: `${item.variant?.color ?? '-'} / ${item.variant?.size ?? '-'}`,
